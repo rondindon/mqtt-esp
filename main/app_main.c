@@ -43,33 +43,49 @@
 static const char *TAG = "MQTT_EXAMPLE";
 
 #define    FIRST            15
-#define    SECOND           4
-#define    THIRD            5
-#define    FOURTH           18
-#define    FIFTH            19
+#define    BUTTON_PIN       5
+#define TOGGLE_TOPIC "btn-toggle"
 
-void resetLeds() {
-                gpio_set_level(FIRST,0);
-            gpio_set_level(SECOND,0);
-            gpio_set_level(THIRD,0);
-            gpio_set_level(FOURTH,0);
-            gpio_set_level(FIFTH,0);
+
+bool btn_pressed()
+{
+    return (gpio_get_level(BUTTON_PIN) == 0);
 }
+
+bool toggleState = false;
+
+// void resetLeds() {
+//                 gpio_set_level(FIRST,0);
+//             gpio_set_level(SECOND,0);
+//             gpio_set_level(THIRD,0);
+//             gpio_set_level(FOURTH,0);
+//             gpio_set_level(FIFTH,0);
+// }
 
 void board_reset(){
     gpio_reset_pin(FIRST);
-    gpio_reset_pin(SECOND);
-    gpio_reset_pin(THIRD);
-    gpio_reset_pin(FOURTH);
-    gpio_reset_pin(FIFTH);
+    // gpio_reset_pin(SECOND);
+    // gpio_reset_pin(THIRD);
+    // gpio_reset_pin(FOURTH);
+    // gpio_reset_pin(FIFTH);
+    gpio_reset_pin(BUTTON_PIN);
 
     gpio_set_direction(FIRST, GPIO_MODE_OUTPUT);
-    gpio_set_direction(SECOND, GPIO_MODE_OUTPUT);
-    gpio_set_direction(THIRD, GPIO_MODE_OUTPUT);
-    gpio_set_direction(FOURTH, GPIO_MODE_OUTPUT);
-    gpio_set_direction(FIFTH, GPIO_MODE_OUTPUT);
+    // gpio_set_direction(SECOND, GPIO_MODE_OUTPUT);
+    // gpio_set_direction(THIRD, GPIO_MODE_OUTPUT);
+    // gpio_set_direction(FOURTH, GPIO_MODE_OUTPUT);
+    // gpio_set_direction(FIFTH, GPIO_MODE_OUTPUT);
+
+    gpio_set_direction(BUTTON_PIN, GPIO_MODE_INPUT);
+    gpio_set_pull_mode(BUTTON_PIN, GPIO_PULLUP_ONLY);
 }
 
+void sendToggleMessage(esp_mqtt_client_handle_t client) {
+    toggleState = !toggleState;
+    const char *message = "TOGGLE";
+    int msg_id = esp_mqtt_client_publish(client, TOGGLE_TOPIC, message, 0, 1, 0);
+    ESP_LOGI(TAG, "sent publish successful, msg_id=%d", msg_id);
+}
 
 static void log_error_if_nonzero(const char *message, int error_code)
 {
@@ -96,6 +112,7 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
     int msg_id;
     switch ((esp_mqtt_event_id_t)event_id) {
     case MQTT_EVENT_CONNECTED:
+        
         // ESP_LOGI(TAG, "MQTT_EVENT_CONNECTED");
         // msg_id = esp_mqtt_client_publish(client, "/topic/qos1", "data_3", 0, 1, 0);
         // ESP_LOGI(TAG, "sent publish successful, msg_id=%d", msg_id);
@@ -116,6 +133,12 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
         msg_id = esp_mqtt_client_subscribe(client, "/ronnie/test", 0);
         ESP_LOGI(TAG, "sent subscribe successful, msg_id=%d", msg_id);
 
+        msg_id = esp_mqtt_client_publish(client, "btn-toggle", "data_btn", 0, 1, 0);
+        ESP_LOGI(TAG, "sent publish successful, msg_id=%d", msg_id);
+
+        msg_id = esp_mqtt_client_subscribe(client, "btn-toggle", 0);
+        ESP_LOGI(TAG, "sent subscribe successful, msg_id=%d", msg_id);
+
         break;
     case MQTT_EVENT_DISCONNECTED:
         ESP_LOGI(TAG, "MQTT_EVENT_DISCONNECTED");
@@ -124,6 +147,9 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
     case MQTT_EVENT_SUBSCRIBED:
         ESP_LOGI(TAG, "MQTT_EVENT_SUBSCRIBED");
         msg_id = esp_mqtt_client_publish(client, "/ronnie/test", "data", 0, 0, 0);
+        ESP_LOGI(TAG, "sent publish successful, msg_id=%d", msg_id);
+
+        msg_id = esp_mqtt_client_publish(client, "btn-toggle", "data", 0, 0, 0);
         ESP_LOGI(TAG, "sent publish successful, msg_id=%d", msg_id);
         break;
     case MQTT_EVENT_UNSUBSCRIBED:
@@ -137,48 +163,48 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
         printf("TOPIC=%.*s\r\n", event->topic_len, event->topic);
         printf("DATA=%.*s\r\n", event->data_len, event->data);
 
+        sendToggleMessage(client);
+        // if(strncmp(event->data, "on", event->data_len) == 0){
+        //     gpio_set_level(led,1);
+        // }
+        // if(strncmp(event->data, "off", event->data_len) == 0){
+        //     gpio_set_level(led,0);
+        // }
 
-        if(strncmp(event->data, "on", event->data_len) == 0){
-            gpio_set_level(led,1);
-        }
-        if(strncmp(event->data, "off", event->data_len) == 0){
-            gpio_set_level(led,0);
-        }
+        // if(strncmp(event->data, "0", event->data_len) == 0){
+        //     resetLeds();
+        // }  
 
-        if(strncmp(event->data, "0", event->data_len) == 0){
-            resetLeds();
-        }  
-
-        if(strncmp(event->data, "1", event->data_len) == 0){
-            resetLeds();
-            gpio_set_level(FIRST,1);
-        }
-        if(strncmp(event->data, "2", event->data_len) == 0){
-            resetLeds();
-            gpio_set_level(FIRST,1);
-            gpio_set_level(SECOND,1);
-        }
-        if(strncmp(event->data, "3", event->data_len) == 0){
-            resetLeds();
-           gpio_set_level(FIRST,1);
-           gpio_set_level(SECOND,1);
-           gpio_set_level(THIRD,1);
-        }
-        if(strncmp(event->data, "4", event->data_len) == 0){
-            resetLeds();
-            gpio_set_level(FIRST,1);
-            gpio_set_level(SECOND,1);
-            gpio_set_level(THIRD,1);
-            gpio_set_level(FOURTH,1);
-        }
-        if(strncmp(event->data, "5", event->data_len) == 0){
-            resetLeds();
-            gpio_set_level(FIRST,1);
-            gpio_set_level(SECOND,1);
-            gpio_set_level(THIRD,1);
-            gpio_set_level(FOURTH,1);
-            gpio_set_level(FIFTH,1);
-        }
+        // if(strncmp(event->data, "1", event->data_len) == 0){
+        //     resetLeds();
+        //     gpio_set_level(FIRST,1);
+        // }
+        // if(strncmp(event->data, "2", event->data_len) == 0){
+        //     resetLeds();
+        //     gpio_set_level(FIRST,1);
+        //     gpio_set_level(SECOND,1);
+        // }
+        // if(strncmp(event->data, "3", event->data_len) == 0){
+        //     resetLeds();
+        //    gpio_set_level(FIRST,1);
+        //    gpio_set_level(SECOND,1);
+        //    gpio_set_level(THIRD,1);
+        // }
+        // if(strncmp(event->data, "4", event->data_len) == 0){
+        //     resetLeds();
+        //     gpio_set_level(FIRST,1);
+        //     gpio_set_level(SECOND,1);
+        //     gpio_set_level(THIRD,1);
+        //     gpio_set_level(FOURTH,1);
+        // }
+        // if(strncmp(event->data, "5", event->data_len) == 0){
+        //     resetLeds();
+        //     gpio_set_level(FIRST,1);
+        //     gpio_set_level(SECOND,1);
+        //     gpio_set_level(THIRD,1);
+        //     gpio_set_level(FOURTH,1);
+        //     gpio_set_level(FIFTH,1);
+        // }
 
         break;
     case MQTT_EVENT_ERROR:
@@ -214,7 +240,7 @@ void app_main(void)
 {
     board_reset();
     gpio_reset_pin(led);
-gpio_set_direction(led, GPIO_MODE_OUTPUT);
+    gpio_set_direction(led, GPIO_MODE_OUTPUT);
     ESP_LOGI(TAG, "[APP] Startup..");
     ESP_LOGI(TAG, "[APP] Free memory: %" PRIu32 " bytes", esp_get_free_heap_size());
     ESP_LOGI(TAG, "[APP] IDF version: %s", esp_get_idf_version());
@@ -238,4 +264,5 @@ gpio_set_direction(led, GPIO_MODE_OUTPUT);
     ESP_ERROR_CHECK(example_connect());
 
     mqtt_app_start();
+    
 }

@@ -31,28 +31,22 @@
 
 #include "driver/gpio.h"
 #include "driver/adc.h"
-
-#include "driver/gpio.h"
 #include "driver/ledc.h"
-#include "driver/adc.h"
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "freertos/semphr.h"
 #include "esp_log.h"
 #include "mqtt_client.h"
 #include "driver/ledc.h"
 
 static const char *TAG = "MQTT_EXAMPLE";
 
-#define    led            15
-#define    BUTTON_PIN       5
-#define TOGGLE_TOPIC "btn-toggle"
-#define INTENSITY_TOPIC "intensity-slider"
-#define POT_CHANNEL        ADC_CHANNEL_0
-#define POT_MAX            4095  // Maximum ADC value
-#define LED_PWM_CHANNEL    LEDC_CHANNEL_0
-#define LEDC_TIMER         LEDC_TIMER_0
-#define LEDC_FREQ_HZ       5000  // Set your desired frequency
+#define     led                 15
+#define     BUTTON_PIN          5
+#define     TOGGLE_TOPIC        "btn-toggle"
+#define     INTENSITY_TOPIC     "intensity-slider"
+#define     POT_CHANNEL         ADC_CHANNEL_0
+#define     POT_MAX             4095  // Maximum ADC value
+#define     LED_PWM_CHANNEL     LEDC_CHANNEL_0
+#define     LEDC_TIMER          LEDC_TIMER_0
+#define     LEDC_FREQ_HZ        5000  // Set your desired frequency
 
 static char receivedMessage[32];
 
@@ -63,11 +57,6 @@ static uint32_t previous_intensity = UINT32_MAX;
 static uint32_t last_intensity = 0;
 static uint32_t mqtt_desired_intensity = UINT32_MAX;
 
-bool btn_pressed()
-{
-    return (gpio_get_level(BUTTON_PIN) == 0);
-}
-
 void board_reset(){
     gpio_reset_pin(led);
     gpio_reset_pin(BUTTON_PIN);
@@ -77,7 +66,6 @@ void board_reset(){
     gpio_set_direction(BUTTON_PIN, GPIO_MODE_INPUT);
     gpio_set_pull_mode(BUTTON_PIN, GPIO_PULLUP_ONLY);
 }
-
 
 static void log_error_if_nonzero(const char *message, int error_code)
 {
@@ -231,7 +219,7 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
         msg_id = esp_mqtt_client_publish(client, "btn-toggle", "data_btn", 0, 1, 0);
         ESP_LOGI(TAG, "sent publish successful, msg_id=%d", msg_id);
 
-                msg_id = esp_mqtt_client_publish(client, "intensity-slider", "data_METER", 0, 1, 0);
+        msg_id = esp_mqtt_client_publish(client, "intensity-slider", "data_METER", 0, 1, 0);
         ESP_LOGI(TAG, "sent publish successful, msg_id=%d", msg_id);
 
         msg_id = esp_mqtt_client_subscribe(client, "btn-toggle", 0);

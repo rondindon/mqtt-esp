@@ -1,7 +1,7 @@
 {
     "version":            "1",
     "project_name":       "mqtt_tcp",
-    "project_version":    "b5cab70-dirty",
+    "project_version":    "b48b1dc-dirty",
     "project_path":       "C:/FF15/tcp",
     "idf_path":           "C:/Users/ronni/esp/esp-idf",
     "build_dir":          "C:/FF15/tcp/build",

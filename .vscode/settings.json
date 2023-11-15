@@ -7,6 +7,14 @@
     "complex": "c",
     "format": "c",
     "future": "c",
-    "system_error": "c"
-  }
+    "system_error": "c",
+    "netdb.h": "c",
+    "dns.h": "c",
+    "array": "c",
+    "vector": "c",
+    "xstring": "c",
+    "xutility": "c",
+    "set": "c"
+  },
+  "idf.adapterTargetName": "esp32"
 }

@@ -311,7 +311,7 @@ static void mqtt_app_start(void) {
     xTaskCreate(potentiometer_task, "potentiometer_task", 2048, client, 10, NULL);
 }
 
-void app_main(void) {
+void app_main(void) { 
     board_reset();
     gpio_reset_pin(led);
     gpio_set_direction(led, GPIO_MODE_OUTPUT);

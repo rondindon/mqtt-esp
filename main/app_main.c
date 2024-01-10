@@ -178,25 +178,23 @@ void potentiometer_task(void *pvParameters) {
     while (1) {
         // Read potentiometer value
         uint32_t pot_value = adc1_get_raw(POT_CHANNEL);
-
-        // Check if potentiometer value has changed
         
-            // Map potentiometer value to LED intensity
-            uint32_t intensity = (pot_value * 4095) / POT_MAX;
+        // Map potentiometer value to LED intensity
+        uint32_t intensity = (pot_value * 4095) / POT_MAX;
 
-            // Check if intensity has changed
-            if (abs(pot_value - previous_intensity) > 10) {
-                //printf("SSSSS");
-                // Update the LED intensity
-                send_intensity_to_mqtt(mqtt_client, intensity);
-                update_led_intensity(mqtt_client, intensity);
-            }
+        // Check if intensity has changed
+        if (abs(pot_value - previous_intensity) > 10) {
+            //printf("SSSSS");
+            // Update the LED intensity
+            send_intensity_to_mqtt(mqtt_client, intensity);
+            update_led_intensity(mqtt_client, intensity);
+        }
 
-            // Update the previous intensity value
-            previous_intensity = intensity;
+        // Update the previous intensity value
+        previous_intensity = intensity;
 
-            // Update the previous potentiometer value
-            previous_pot_value = pot_value;
+        // Update the previous potentiometer value
+        previous_pot_value = pot_value;
         
 
         vTaskDelay(pdMS_TO_TICKS(500));  // Adjust delay as needed
